@@ -8326,7 +8326,6 @@ function renderExamList() {
     if (filterStar !== 'all' && currentSection === 2) {
       qs = qs.filter(q => getCardStars(q) === parseInt(filterStar));
     }
-    }
   }
   const groups = {};
   qs.forEach((q, i) => {
