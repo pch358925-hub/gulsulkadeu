@@ -1,0 +1,70 @@
+<body>
+
+<!-- ── 상단바 (제목 좌 · D-day 중앙 · 테마 우) ── -->
+<div class="topbar">
+  <div class="topbar-row2">
+    <span class="hdr-title">
+      <span class="hdr-grad">보디빌딩</span>
+      <span class="hdr-tag">2급</span>
+      <span class="hdr-grad">생활</span>
+    </span>
+    <span class="dday-badge" id="ddayBadge" onclick="openDdayEdit()">D-?</span>
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </div>
+</div>
+
+<!-- ── 필터 바 ── -->
+<div class="filter-bar" id="filterBar">
+  <div class="filter-main">
+    <button class="btn-flt act" data-mode="전체" onclick="setFilterMode('전체',this)">전체</button>
+    <button class="btn-flt gul"  data-mode="구술" onclick="setFilterMode('구술',this)">구술</button>
+    <button class="btn-flt sil"  data-mode="실기" onclick="setFilterMode('실기',this)">실기</button>
+    <button class="btn-wrong" id="wrongFltBtn" onclick="openWrongMode()">❌ <span class="wc" id="wrongCountBadge">0</span></button>
+    <button class="btn-flt" onclick="openExamMode()" style="margin-left:auto;color:#f43f5e;border-color:color-mix(in srgb,#f43f5e 40%,transparent);">⚡예상</button>
+  </div>
+  <div class="sub-filter-row" id="subFilterRow"></div>
+</div>
+
+<!-- ── 진행 영역 (좌 과목(소분류) / 우 진행바+별표+숫자) ── -->
+<div class="prog-area" id="progArea">
+  <span class="prog-subject" id="progSubject">운동생리학</span>
+  <div class="prog-right">
+    <div class="prog-bar"><div class="prog-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="prog-meta-row">
+      <span class="prog-stars" id="progStars"></span>
+      <span class="prog-count" id="progressText">1 / 107</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 카드 ── -->
+<div id="card"></div>
+
+<!-- ── 이전 / 셔플 / 다음 ── -->
+<div class="nav-row">
+  <button class="btn-nav" id="prevBtn" onclick="move(-1)">◀ 이전</button>
+  <button class="btn-shuffle" onclick="shuffle()" title="섞기">🔀</button>
+  <button class="btn-nav" id="nextBtn" onclick="move(1)">다음 ▶</button>
+</div>
+
+<!-- ── D-day 편집 모달 ── -->
+<div class="modal-overlay" id="ddayModal">
+  <div class="modal-box">
+    <div class="modal-title">📅 시험일 설정</div>
+    <input class="modal-input" type="date" id="ddayInput">
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="closeDdayEdit()">취소</button>
+      <button class="modal-btn-ok" onclick="saveDday()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 오답노트 ── -->
+<div id="cardModeOverlay">
+  <div class="cm-hdr">
+    <button class="cm-back" onclick="closeCardMode()">← 돌아가기</button>
+    <span class="cm-title" id="cmTitle">❌ 오답노트</span>
+  </div>
+  <div class="cm-card-list" id="cmCardList"></div>
+</div>
+
