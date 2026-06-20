@@ -25,20 +25,18 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;-webkit-font-smoothing:antialiased;}
 
-/* ── 상단바 (하나로 통합) ── */
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30;padding:8px 14px 9px;}
-.topbar-row1{display:flex;justify-content:center;margin-bottom:8px;}
-.topbar-row2{display:flex;align-items:center;gap:8px;}
-.dday-badge{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,#10b981,#2dd4a0);border:none;border-radius:20px;
-  padding:5px 20px;cursor:pointer;letter-spacing:.06em;box-shadow:0 2px 12px color-mix(in srgb,#10b981 38%,transparent);
+/* ── 상단바 (제목 좌 · D-day 중앙 · 테마 우) ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30;padding:10px 14px;}
+.topbar-row2{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;}
+.dday-badge{justify-self:center;font-family:var(--mono);font-size:12.5px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:20px;
+  padding:5px 16px;cursor:pointer;letter-spacing:.05em;box-shadow:0 2px 12px color-mix(in srgb,var(--accent) 40%,transparent);
   transition:transform .12s;}
 .dday-badge:hover{transform:translateY(-1px);}
-.hdr-title{flex:1;font-size:17px;font-weight:900;letter-spacing:-.02em;display:flex;align-items:center;gap:7px;}
-.hdr-emoji{font-size:18px;}
+.hdr-title{justify-self:start;font-size:15px;font-weight:900;letter-spacing:-.02em;display:flex;align-items:center;gap:6px;}
 .hdr-grad{background:linear-gradient(120deg,var(--accent),#8b7bf0 70%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 .hdr-tag{font-family:var(--mono);font-size:10px;font-weight:700;color:#fff;background:var(--accent);border-radius:5px;padding:2px 7px;letter-spacing:.02em;}
-.btn-theme{width:30px;height:30px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:border-color .15s;}
+.btn-theme{justify-self:end;width:30px;height:30px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:border-color .15s;}
 .btn-theme:hover{border-color:var(--accent);}
 
 /* ── 필터 바 ── */
@@ -135,6 +133,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .prin-line:last-child{margin-bottom:0;}
 .prin-line::before{content:'•';position:absolute;left:2px;color:var(--cc);font-weight:700;}
 .prin-line em{font-style:normal;font-weight:700;color:var(--text);}
+
+/* 용어 정의 (사전식, 한눈에) */
+.gloss-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent);}
+.gloss-item:first-child{padding-top:0;}
+.gloss-item:last-child{border-bottom:none;padding-bottom:0;}
+.gloss-term{flex:0 0 90px;font-size:12.5px;font-weight:800;color:var(--cc);line-height:1.45;}
+.gloss-def{flex:1;font-size:12.5px;color:var(--text-md);line-height:1.5;}
+
 
 /* ── 이전 / 셔플 / 다음 ── */
 .nav-row{display:flex;gap:8px;padding:8px 10px 14px;}
@@ -245,16 +251,14 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 </head>
 <body>
 
-<!-- ── 상단바 (D-day 중앙 + 제목 한 바) ── -->
+<!-- ── 상단바 (제목 좌 · D-day 중앙 · 테마 우) ── -->
 <div class="topbar">
-  <div class="topbar-row1">
-    <span class="dday-badge" id="ddayBadge" onclick="openDdayEdit()">D-?</span>
-  </div>
   <div class="topbar-row2">
     <span class="hdr-title">
-        <span class="hdr-tag">2급</span>
+      <span class="hdr-tag">2급</span>
       <span class="hdr-grad">보디빌딩 생활</span>
     </span>
+    <span class="dday-badge" id="ddayBadge" onclick="openDdayEdit()">D-?</span>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙</button>
   </div>
 </div>
@@ -265,8 +269,8 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
     <button class="btn-flt act" data-mode="전체" onclick="setFilterMode('전체',this)">전체</button>
     <button class="btn-flt gul"  data-mode="구술" onclick="setFilterMode('구술',this)">구술</button>
     <button class="btn-flt sil"  data-mode="실기" onclick="setFilterMode('실기',this)">실기</button>
-    <button class="btn-flt" onclick="openExamMode()" style="margin-left:auto;color:#f43f5e;border-color:color-mix(in srgb,#f43f5e 40%,transparent);">⚡예상</button>
     <button class="btn-wrong" id="wrongFltBtn" onclick="openWrongMode()">❌ <span class="wc" id="wrongCountBadge">0</span></button>
+    <button class="btn-flt" onclick="openExamMode()" style="margin-left:auto;color:#f43f5e;border-color:color-mix(in srgb,#f43f5e 40%,transparent);">⚡예상</button>
   </div>
   <div class="sub-filter-row" id="subFilterRow"></div>
 </div>
@@ -2966,6 +2970,103 @@ const ALL_CARDS = [
 
 ];
 // ════════════════════════════════════════
+//  운동생리학 용어집 (직관·핵심·간략)  ※ A안 1차분
+// ════════════════════════════════════════
+const GLOSSARY = {
+  'ATP란 무엇인가?': [
+    { t:'ATP', d:'아데노신+인산기 3개로 된 세포의 직접 에너지원' },
+    { t:'ADP', d:'ATP에서 인산 1개가 떨어진 형태(이인산)' },
+    { t:'재합성', d:'쓰고 남은 ADP를 다시 ATP로 되돌리는 것' },
+  ],
+  'ATP-PC 시스템(인원질 과정)을 설명하시오': [
+    { t:'크레아틴 인산(PC)', d:'근육에 저장된 고에너지 인산물, ATP를 즉시 재합성' },
+    { t:'CK 효소', d:'PC를 분해해 ATP를 만드는 효소(크레아틴 키나아제)' },
+    { t:'무산소 과정', d:'산소 없이 에너지를 내는 대사' },
+  ],
+  '무산소 해당과정(젖산 시스템)을 설명하시오': [
+    { t:'해당과정', d:'포도당을 분해해 ATP·피루브산을 만드는 무산소 대사' },
+    { t:'PFK 효소', d:'해당과정 속도를 조절하는 핵심 효소' },
+    { t:'피루브산', d:'포도당 분해의 산물(산소 유무로 젖산/아세틸CoA행)' },
+    { t:'코리회로', d:'젖산을 간으로 보내 포도당으로 되돌리는 순환' },
+  ],
+  '유산소 대사과정(산화 시스템)을 설명하시오': [
+    { t:'베타산화', d:'지방산을 아세틸-CoA로 잘게 쪼개는 과정' },
+    { t:'TCA회로', d:'미토콘드리아에서 영양소를 산화하는 회로(구연산회로)' },
+    { t:'전자전달계', d:'미토콘드리아에서 ATP를 대량 생산하는 마지막 단계' },
+    { t:'리파아제', d:'중성지방을 글리세롤+지방산으로 분해하는 효소' },
+  ],
+  '교감신경과 부교감신경의 차이를 설명하시오': [
+    { t:'자율신경계', d:'의지와 무관하게 내장·혈관을 조절하는 신경' },
+    { t:'교감신경', d:'위기·운동 시 활성(투쟁-도피), 노르에피네프린 분비' },
+    { t:'부교감신경', d:'휴식·소화 시 활성(이완), 아세틸콜린 분비' },
+  ],
+  '고온 환경에서 운동 시 주의사항과 수분 섭취 요령은?': [
+    { t:'탈수', d:'체내 수분이 빠져 부족해진 상태' },
+    { t:'전해질', d:'나트륨·칼륨 등 근수축·신경전달에 필요한 이온' },
+    { t:'열사병', d:'체온조절 실패로 생기는 위급한 고체온 상태' },
+  ],
+  '저항운동을 과하게 할 시 피로가 느껴지는 이유는?': [
+    { t:'수소이온(H⁺)', d:'축적되면 근육 pH를 낮춰 피로 유발(실질 원인)' },
+    { t:'글리코겐', d:'근육·간에 저장된 포도당 형태의 에너지' },
+    { t:'중추피로', d:'근육이 아닌 신경계(CNS)에서 오는 피로' },
+  ],
+  '인슐린과 글루카곤의 차이를 설명하시오': [
+    { t:'인슐린', d:'췌장 베타세포 분비, 혈당을 낮춤(글리코겐 저장)' },
+    { t:'글루카곤', d:'췌장 알파세포 분비, 혈당을 높임(글리코겐 분해)' },
+    { t:'길항작용', d:'두 호르몬이 서로 반대로 작용해 균형 유지' },
+  ],
+  '렙틴과 그렐린 호르몬이란?': [
+    { t:'렙틴', d:'지방조직 분비, 포만 신호로 식욕 억제' },
+    { t:'그렐린', d:'위에서 분비, 공복 시 식욕 자극' },
+  ],
+  '유산소 운동과 무산소 운동의 차이는?': [
+    { t:'유산소 운동', d:'산소를 이용해 ATP를 대량 생성(장시간·저강도)' },
+    { t:'무산소 운동', d:'산소 없이 ATP 생성(단시간·고강도)' },
+    { t:'젖산역치', d:'젖산이 급격히 쌓이기 시작하는 운동 강도점' },
+  ],
+  '근세사 활주설이란?': [
+    { t:'액틴', d:'가는 근세사(미오신이 끌어당기는 대상)' },
+    { t:'미오신', d:'굵은 근세사, 머리로 액틴을 당김' },
+    { t:'트로포닌', d:'칼슘과 결합해 수축 스위치를 켜는 단백질' },
+    { t:'파워스트로크', d:'미오신 머리가 액틴을 당겨 근육이 짧아지는 동작' },
+  ],
+  '골지건 기관과 근방추란?': [
+    { t:'골지건 기관(GTO)', d:'힘줄의 과도한 장력을 감지해 수축 억제(부상방지)' },
+    { t:'근방추', d:'근육의 길이·속도 변화를 감지하는 감각기관' },
+    { t:'스트레칭 반사', d:'근육이 갑자기 늘어나면 반사적으로 수축하는 반응' },
+  ],
+  '지근(지구력근)과 속근(파워근)의 차이는?': [
+    { t:'지근(Type I)', d:'느리지만 잘 안 지치는 적색근(유산소·지구력)' },
+    { t:'속근(Type II)', d:'빠르고 강하나 쉽게 지치는 백색근(무산소·파워)' },
+    { t:'마이오글로빈', d:'근육에 산소를 저장하는 단백질(적색근에 풍부)' },
+  ],
+  '스포츠 심장(운동성 서맥)이란?': [
+    { t:'스포츠 심장', d:'운동으로 심장근이 발달한 건강한 비대 상태' },
+    { t:'1회 박출량', d:'심장이 한 번 수축에 내보내는 혈액량' },
+    { t:'운동성 서맥', d:'지구력 선수의 정상적인 느린 맥(40~60회/분)' },
+  ],
+  '심박출량의 정의와 계산법은?': [
+    { t:'심박출량', d:'1분간 심장이 내보내는 혈액 총량(=1회박출량×심박수)' },
+    { t:'카르보넨 공식', d:'목표심박수=(최대−안정시)×강도+안정시 심박수' },
+  ],
+  '지연성 근육통(DOMS)이란?': [
+    { t:'DOMS', d:'운동 24~72시간 뒤 나타나는 지연성 근육통' },
+    { t:'신장성 수축', d:'근육이 늘어나며 힘을 내는 수축(근손상↑)' },
+    { t:'위성세포', d:'손상된 근섬유를 재생·성장시키는 세포' },
+  ],
+  '젖산(Lactate) 생성 이유는?': [
+    { t:'젖산', d:'산소 부족 시 피루브산으로부터 생성되는 물질' },
+    { t:'NADH', d:'해당과정의 전자운반체(재활용 위해 젖산 생성)' },
+    { t:'코리회로', d:'젖산을 간에서 포도당으로 되돌리는 순환' },
+  ],
+  '포도당 신생합성(Gluconeogenesis)이란?': [
+    { t:'포도당 신생합성', d:'포도당이 아닌 물질로 포도당을 만드는 과정' },
+    { t:'글리세롤', d:'중성지방 분해 시 나오는 포도당 재료' },
+    { t:'당신생 원료', d:'젖산·아미노산·글리세롤 → 간에서 포도당화' },
+  ],
+};
+
+// ════════════════════════════════════════
 //  메인 플래시카드 (구술/실기 통합 카드)
 // ════════════════════════════════════════
 let filterMode = '전체';
@@ -3085,6 +3186,9 @@ function render(){
     </div>`;
   }).join('');
 
+  const gloss = (typeof GLOSSARY!=='undefined') ? GLOSSARY[card.q] : null;
+  const hasGloss = gloss && gloss.length;
+  const glossHtml = hasGloss ? gloss.map(g=>`<div class="gloss-item"><span class="gloss-term">${g.t}</span><span class="gloss-def">${g.d}</span></div>`).join('') : '';
   const hasPrin = (card.extra && card.extra.trim()) || (card.flow && card.flow.length);
   const prinHtml = buildPrinciple(card);
 
@@ -3105,12 +3209,14 @@ function render(){
       <span class="ck-sum-txt">${card.summary}</span>
     </div>
     <div class="ck-grid">${grid}</div>
-    ${hasPrin?`
+    ${(hasGloss||hasPrin)?`
     <div class="ck-bottom">
       <div class="ck-bottom-row">
-        <button class="ck-prin-btn" id="prinBtn" onclick="togglePrinPanel()" style="border-right:none;">원리 설명 ▼</button>
+        ${hasGloss?`<button class="ck-def-btn" id="defBtn" onclick="toggleDefPanel()"${hasPrin?'':' style="border-right:none;"'}>용어 정의 ▼</button>`:''}
+        ${hasPrin?`<button class="ck-prin-btn" id="prinBtn" onclick="togglePrinPanel()"${hasGloss?'':' style="border-right:none;"'}>원리 설명 ▼</button>`:''}
       </div>
-      <div class="ck-panel" id="prinPanel">${prinHtml}</div>
+      ${hasGloss?`<div class="ck-panel" id="defPanel">${glossHtml}</div>`:''}
+      ${hasPrin?`<div class="ck-panel" id="prinPanel">${prinHtml}</div>`:''}
     </div>`:''}
   `;
   cardEl.style.animation='none'; cardEl.offsetHeight; cardEl.style.animation='';
@@ -3157,6 +3263,10 @@ function toggleBlind(){
     c.querySelectorAll('.ci').forEach(e=>e.classList.remove('open'));
     const s=c.querySelector('.ck-summary'); if(s)s.classList.remove('show');
   }
+}
+function toggleDefPanel(){
+  document.getElementById('defBtn').classList.toggle('open');
+  document.getElementById('defPanel').classList.toggle('open');
 }
 function togglePrinPanel(){
   document.getElementById('prinBtn').classList.toggle('open');
