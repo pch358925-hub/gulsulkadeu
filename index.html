@@ -422,15 +422,6 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 
   <!-- ② 섹션 내부 화면 (목록+모드) -->
   <div id="examInnerView" style="display:none;">
-    <!-- 모드 탭 -->
-    <div style="padding:12px 16px 0; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;">
-      <button onclick="setExamView('list')" id="btnList" class="exam-mode-btn active-mode">📋 전체 목록</button>
-      <button onclick="setExamView('card')" id="btnCard" class="exam-mode-btn">순서</button>
-      <button onclick="setExamView('shuffle')" id="btnShuffle" class="exam-mode-btn">🔀 랜덤</button>
-      <button onclick="setExamView('wrong')" id="btnWrong" class="exam-mode-btn">❌ 오답노트</button>
-      <button onclick="printSection()" style="margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:700;padding:5px 11px;border:1px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0;">🖨 인쇄</button>
-    </div>
-
     <!-- 통합 필터바 (섹션 2·3) -->
     <div id="examFilterBar" style="display:none; padding:8px 16px 0; border-bottom:1px solid var(--border);">
       <!-- 유형 -->
@@ -471,7 +462,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
         <button class="xfb" id="xf-st-3" onclick="setXFilter('star','3',this)">★★★<span class="xfc" id="cnt-st-3"></span></button>
         <button class="xfb" id="xf-st-2" onclick="setXFilter('star','2',this)">★★<span class="xfc" id="cnt-st-2"></span></button>
         <button class="xfb" id="xf-st-1" onclick="setXFilter('star','1',this)">★<span class="xfc" id="cnt-st-1"></span></button>
-        <button class="xfb" id="xf-st-0" onclick="setXFilter('star','0',this)">☆실기<span class="xfc" id="cnt-st-0"></span></button>
+        <button class="xfb" id="xf-st-0" onclick="setXFilter('star','0',this)">☆없음<span class="xfc" id="cnt-st-0"></span></button>
       </div>
       <!-- 대학별 (섹션3 전용) -->
       <div id="xf-univ-row-3" style="display:none; align-items:center; gap:4px; margin-bottom:5px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px;">
@@ -9194,14 +9185,11 @@ function renderExamCount() {
 
 function setExamView(v) {
   examView = v;
-  ['List','Card','Shuffle','Wrong'].forEach(n => {
-    document.getElementById('examListView').style.display  = 'none';
-    document.getElementById('examCardView').style.display  = 'none';
-    document.getElementById('examWrongView').style.display = 'none';
-    document.getElementById('btn'+n).classList.remove('active-mode');
-  });
-  const key = v.charAt(0).toUpperCase() + v.slice(1);
-  if (document.getElementById('btn'+key)) document.getElementById('btn'+key).classList.add('active-mode');
+  // 뷰 전부 숨기기 (버튼 행 제거됐으므로 btn 참조 생략)
+  document.getElementById('examListView').style.display  = 'none';
+  document.getElementById('examCardView').style.display  = 'none';
+  document.getElementById('examWrongView').style.display = 'none';
+  // const key = v.charAt(0).toUpperCase() + v.slice(1); // 버튼 행 제거됨
   if (v === 'list') {
     document.getElementById('examListView').style.display = 'block';
     renderExamList();
