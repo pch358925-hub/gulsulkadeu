@@ -5570,7 +5570,7 @@ function buildItemsHtml(card){
   const tot = card.items.length;
   return card.items.map((it,idx)=>{
     const kw = extractKw(it.t);
-    const lbl = extractLabel(it.t);
+    const lbl = it.n;
     const span = (tot%2===1 && idx===tot-1) ? ' span2' : '';
     return `<div class="ci${span}" onclick="tapItem(${idx})"><div class="ci-head"><span class="ci-n">${it.n}</span><span class="ci-label">${lbl}</span><span class="ci-kw">${kw}</span><span class="ci-chev">▾</span></div><div class="ci-full">${it.t}</div></div>`;
   }).join('');
