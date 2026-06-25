@@ -36,8 +36,27 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .hdr-title{justify-self:start;font-size:12px;font-weight:900;letter-spacing:-.02em;display:flex;align-items:center;gap:6px;}
 .hdr-grad{background:linear-gradient(120deg,var(--accent),#8b7bf0 70%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 .hdr-tag{font-family:var(--mono);font-size:10px;font-weight:700;color:#fff;background:var(--accent);border-radius:5px;padding:2px 7px;letter-spacing:.02em;}
-.btn-theme{justify-self:end;width:30px;height:30px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:border-color .15s;}
+.btn-theme{width:30px;height:30px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:border-color .15s;}
 .btn-theme:hover{border-color:var(--accent);}
+.btn-search{width:30px;height:30px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:border-color .15s;}
+.btn-search:hover{border-color:var(--accent);}
+.topbar-right{display:flex;gap:6px;justify-self:end;align-items:center;}
+.search-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);justify-content:center;padding-top:64px;}
+.search-overlay.open{display:flex;}
+.search-box{background:var(--surface);border-radius:16px;width:min(92vw,480px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.35);}
+.search-input-row{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.search-input-row span.si-icon{font-size:16px;}
+.search-input-row input{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--text);font-family:var(--sans);}
+.search-input-row button.si-close{background:transparent;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:2px 6px;border-radius:6px;line-height:1;}
+.search-input-row button.si-close:hover{background:var(--surface2);}
+.search-results{overflow-y:auto;flex:1;}
+.search-result-item{padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.search-result-item:hover{background:var(--surface2);}
+.search-result-item:last-child{border-bottom:none;}
+.sr-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent);color:#fff;display:inline-block;margin-bottom:5px;font-family:var(--mono);letter-spacing:.04em;}
+.sr-q{font-size:13px;font-weight:600;color:var(--text);line-height:1.45;}
+.sr-kw{font-size:11px;color:var(--text-muted);margin-top:3px;}
+.search-no-result{padding:28px;text-align:center;color:var(--text-muted);font-size:13px;}
 
 /* ── 필터 바 ── */
 .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 12px 0;}
@@ -334,7 +353,10 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
       <span class="hdr-tag">2급 생활</span>
     </span>
     <span class="dday-badge" id="ddayBadge" onclick="openDdayEdit()">D-?</span>
-    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙</button>
+    <div class="topbar-right">
+      <button class="btn-search" onclick="openSearch()" title="카드 검색">🔍</button>
+      <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙</button>
+    </div>
   </div>
 </div>
 
@@ -2425,6 +2447,34 @@ const ALL_CARDS = [
   ],
   keywords: ['스포츠심장', '운동성서맥', '1회박출량', '심실비대', '안정시심박수'],
   extra: '심박출량 = 1회 박출량 × 1분간 심박수. 일반인 안정시 심박수: 분당 60~100회. 운동선수: 40~60회. 심박출량은 비슷하게 유지되면서 심장이 더 효율적으로 작동. ★원리: 지속적인 유산소 훈련 → 심실이 넓어져 한 번에 더 많은 혈액을 내보냄(1회 박출량 증가). 한 번에 더 많이 내보내니 천천히 뛰어도 충분한 혈액 공급 가능 → 안정 시 맥박 60회 미만(서맥). 병적 서맥과 달리 운동 시 심박수는 정상적으로 오름.',
+},
+
+// ── 심장 전도계 (2026 출제) ──
+{cat:'생리학', sub:'심폐 기능', freq:3,
+  q:'심장 전도계(자극 전도계)의 순서를 설명하시오',
+  summary:'동방결절 → 방실결절 → 히스다발 → 푸르키네 섬유 순으로 전기 신호 전달',
+  flow:['동방결절','→','방실결절','→','히스다발','→','푸르키네섬유','→','심실수축'],
+  items:[
+    {n:'①',t:'<em>동방결절(SA node)</em>: 심장 내 전기 신호를 자동 생성하는 <em>페이스메이커</em> — 우심방 위치, 60~100회/분'},
+    {n:'②',t:'<em>방실결절(AV node)</em>: 신호를 약 0.1초 지연시킴 → 심방 수축 완료 후 심실 수축 가능'},
+    {n:'③',t:'<em>히스다발(Bundle of His)</em>: 신호를 심실중격으로 전달, 좌각지·우각지로 분기'},
+    {n:'④',t:'<em>푸르키네 섬유(Purkinje fiber)</em>: 심실 전체로 신호 빠르게 분산 → 심실 동시 수축'},
+  ],
+  keywords:['심장전도계','동방결절','SA노드','방실결절','히스다발','푸르키네섬유','심실수축','자극전도'],
+  extra:'순서 암기법: 동→방→히→푸(푸르키네). SA node(60~100회/분) → AV node(0.1초 지연) → His bundle(좌·우 각지) → Purkinje fiber(심실 전체 동시 수축). 심장이 신경 없이도 스스로 박동하는 이유: 동방결절이 자동적으로 전기 신호 생성(자동능). ★원리: 전기 신호가 심방→심실 순서로 전달되어야 혈액이 위(심방)에서 아래(심실)로 제대로 밀려 내려감. 방실결절 지연이 없으면 심방·심실이 동시에 수축하여 혈액 이동 불가.',
+},
+{cat:'생리학', sub:'심폐 기능', freq:3,
+  q:'심장 자극 전도계의 구성 요소를 설명하시오',
+  summary:'동방결절·방실결절·히스다발·푸르키네 섬유 — 4가지 구성 요소',
+  flow:['신호생성','→','지연조율','→','심실전달','→','심실전체수축'],
+  items:[
+    {n:'①',t:'<em>동방결절(SA node)</em>: 최초 전기 신호 생성 — 심장의 자동 박동 원천(페이스메이커)'},
+    {n:'②',t:'<em>방실결절(AV node)</em>: 심방→심실 신호 전달 시 잠시 지연 → 심방·심실 수축 순서 조율'},
+    {n:'③',t:'<em>히스다발(His bundle)</em>: 심실중격을 따라 좌각지·우각지로 분기하여 심실로 신호 전달'},
+    {n:'④',t:'<em>푸르키네 섬유(Purkinje fiber)</em>: 심실 근육 전체로 신호를 빠르게 분산 → 심실 동시·효율적 수축'},
+  ],
+  keywords:['심장자극전도계','구성요소','동방결절','방실결절','히스다발','푸르키네섬유','페이스메이커','자동능'],
+  extra:'4요소 역할 요약: ①생성(동방결절) ②지연(방실결절) ③전달(히스다발) ④분산(푸르키네). 심박수 조절 계층: SA node(60~100) > AV node(40~60) > His/Purkinje(20~40) — 상위 실패 시 하위 대체. SA node 손상 → AV node가 박동 담당. ★원리: 자극 전도계가 있어야 심방·심실이 순서대로 수축하여 혈액을 폐→온몸으로 효율적으로 순환시킬 수 있음.',
 },
 
 // ════════════════════════════════════════
@@ -5748,6 +5798,55 @@ function toggleTheme(){
   const dark = document.documentElement.classList.toggle('dark');
   const t=document.getElementById('themeBtn'); if(t)t.textContent = dark?'☀️':'🌙';
   localStorage.setItem('theme', dark?'dark':'light');
+}
+
+// ── 검색 ──
+function openSearch(){
+  document.getElementById('searchOverlay').classList.add('open');
+  setTimeout(()=>{const inp=document.getElementById('searchInput'); if(inp) inp.focus();},80);
+  doSearch('');
+}
+function closeSearch(){
+  document.getElementById('searchOverlay').classList.remove('open');
+  const inp=document.getElementById('searchInput'); if(inp) inp.value='';
+  const res=document.getElementById('searchResults'); if(res) res.innerHTML='<div class="search-no-result">검색어를 입력하세요</div>';
+}
+function closeSearchOverlay(e){ if(e.target.id==='searchOverlay') closeSearch(); }
+function doSearch(q){
+  const res=document.getElementById('searchResults'); if(!res) return;
+  q=(q||'').trim().toLowerCase();
+  if(!q){ res.innerHTML='<div class="search-no-result">검색어를 입력하세요</div>'; return; }
+  const hits=ALL_CARDS.filter(c=>{
+    const text=[c.q, c.summary||'', (c.keywords||[]).join(' '),
+      (c.items||[]).map(i=>(i.t||'').replace(/<[^>]+>/g,'')).join(' '),
+      c.extra||''].join(' ').toLowerCase();
+    return text.includes(q);
+  }).slice(0,30);
+  if(!hits.length){ res.innerHTML='<div class="search-no-result">일치하는 카드가 없습니다</div>'; return; }
+  res.innerHTML=hits.map(c=>{
+    const idx=ALL_CARDS.indexOf(c);
+    const subj=cardSubject(c);
+    const kws=(c.keywords||[]).slice(0,4).join(' · ');
+    return '<div class="search-result-item" onclick="jumpToSearchCard('+idx+')">'
+      +'<span class="sr-badge">'+subj+'</span>'
+      +'<div class="sr-q">'+c.q+'</div>'
+      +(kws?'<div class="sr-kw">'+kws+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+function jumpToSearchCard(globalIdx){
+  closeSearch();
+  filterMode='전체'; filterSub='all';
+  document.querySelectorAll('.filter-main .btn-flt').forEach(b=>b.classList.remove('act'));
+  const allBtn=document.querySelector('.filter-main .btn-flt[data-mode="전체"]');
+  if(allBtn) allBtn.classList.add('act');
+  buildSubFilter(); applyFilter();
+  const card=ALL_CARDS[globalIdx];
+  const pos=filteredCards.indexOf(card);
+  if(pos>=0) currentIndex=pos;
+  renderCard();
+  const area=document.getElementById('cardArea')||document.querySelector('.card-wrap');
+  if(area) area.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // ── D-day ──
@@ -11491,5 +11590,17 @@ document.addEventListener('DOMContentLoaded', function() {
   render();
 });
 </script>
+
+<!-- ── 검색 오버레이 ── -->
+<div id="searchOverlay" class="search-overlay" onclick="closeSearchOverlay(event)">
+  <div class="search-box">
+    <div class="search-input-row">
+      <span class="si-icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="카드 검색 (예: ATP, 슈퍼세트, 동방결절)" oninput="doSearch(this.value)" autocomplete="off">
+      <button class="si-close" onclick="closeSearch()">✕</button>
+    </div>
+    <div id="searchResults" class="search-results"><div class="search-no-result">검색어를 입력하세요</div></div>
+  </div>
+</div>
 </body>
 </html>
