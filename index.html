@@ -5569,6 +5569,7 @@ function setSubFilter(sub, el){
   applyFilter();
 }
 function applyFilter(){
+  if(filterMode==='복습'){ filteredCards = ALL_CARDS.filter(isDueOrNew); currentIndex=0; blurOn=false; resetTimer(); render(); return; }
   filteredCards = ALL_CARDS.filter(c=>{
     const _ifbb = c.cat==='규정' && ['IFBB 종목','IFBB 복장','IFBB 규정'].includes(c.sub);
     if(filterMode!=='전체' && cardType(c)!==filterMode && !_ifbb) return false;
@@ -5648,6 +5649,7 @@ function render(){
       ${hasPrin?`<div class="ck-panel" id="prinPanel">${prinHtml}</div>`:''}
     </div>`:''}
   `;
+  injectSrsBar(card);
   cardEl.style.animation='none'; cardEl.offsetHeight; cardEl.style.animation='';
 }
 
@@ -5957,6 +5959,171 @@ function init(){
   applyFilter();
 }
 document.addEventListener('DOMContentLoaded', init);
+
+
+// ═══════════════════════════════════════════════════════════
+//  학습 엔진 v1 — SM-2 간격반복 · 복습 필터 · 게이미피케이션
+//  카드 식별자 = card.q (오답노트와 동일) / localStorage 전용 / AI·서버 0
+// ═══════════════════════════════════════════════════════════
+(function(){
+  const _rs = document.createElement('style');
+  _rs.textContent = `
+  .game-bar{display:flex;align-items:center;gap:10px;max-width:480px;margin:0 auto;padding:7px 14px 9px;cursor:pointer;}
+  .gb-lv{font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;}
+  .gb-lv b{font-size:15px;}
+  .gb-xpwrap{flex:1;height:7px;background:var(--surface2);border-radius:999px;overflow:hidden;}
+  .gb-xp{height:100%;width:0%;background:linear-gradient(90deg,var(--gul),var(--accent));border-radius:999px;transition:width .35s;}
+  .gb-streak{font-size:13px;font-weight:700;color:var(--sil);white-space:nowrap;}
+  #reviewFltBtn .rc{display:inline-block;min-width:15px;padding:0 4px;margin-left:3px;font-size:10px;font-weight:700;background:var(--gul);color:#06281f;border-radius:999px;line-height:15px;text-align:center;}
+  .srs-bar{margin-top:14px;padding:13px;background:var(--surface2);border-radius:14px;}
+  .srs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;gap:8px;}
+  .srs-q{font-size:13px;font-weight:600;color:var(--text-md);}
+  .srs-stat{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .srs-stat.new{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);}
+  .srs-stat.due{background:color-mix(in srgb,#f43f5e 16%,transparent);color:#f43f5e;}
+  .srs-stat.sched{background:color-mix(in srgb,var(--gul) 20%,transparent);color:var(--gul);}
+  .srs-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+  .srs-b{padding:11px 4px;border:none;border-radius:10px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;color:#fff;transition:transform .1s;}
+  .srs-b:active{transform:scale(.95);}
+  .srs-b.again{background:#f43f5e;}.srs-b.hard{background:#f59e0b;}.srs-b.good{background:var(--accent);}.srs-b.easy{background:#2dd4a0;}
+  .srs-done{padding:11px;text-align:center;font-size:13px;font-weight:600;color:var(--gul);background:color-mix(in srgb,var(--gul) 12%,transparent);border-radius:10px;}
+  .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0;}
+  .stat-cell{background:var(--surface2);border-radius:12px;padding:12px;text-align:center;}
+  .stat-cell .v{font-size:21px;font-weight:800;color:var(--text);}
+  .stat-cell .l{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .badge-cell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 4px;border-radius:10px;font-size:10px;text-align:center;line-height:1.25;background:var(--surface2);color:var(--text-dim);}
+  .badge-cell.on{background:color-mix(in srgb,var(--gul) 14%,transparent);color:var(--text);}
+  .badge-cell .bi{font-size:21px;filter:grayscale(1);opacity:.35;}
+  .badge-cell.on .bi{filter:none;opacity:1;}
+  `;
+  document.head.appendChild(_rs);
+})();
+
+const _DAY = 86400000;
+function _todayEpoch(){ return Math.floor(Date.now()/_DAY); }
+function _todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _ydayStr(){ const d=new Date(Date.now()-_DAY); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+let srsMap = (function(){ try{ return JSON.parse(localStorage.getItem('bbSrs')||'{}'); }catch(e){ return {}; } })();
+function saveSrs(){ localStorage.setItem('bbSrs', JSON.stringify(srsMap)); }
+function srsUpdate(q, quality){
+  let r = srsMap[q] || { interval:0, ease:2.5, reps:0 };
+  if(quality < 3){ r.reps=0; r.interval=0; }
+  else {
+    if(r.reps===0) r.interval = (quality===5?3:1);
+    else if(r.reps===1) r.interval = (quality===5?10:6);
+    else { const k=(quality===3?0.85:quality===5?1.3:1); r.interval=Math.max(1,Math.round(r.interval*r.ease*k)); }
+    r.ease = Math.max(1.3, r.ease + (0.1-(5-quality)*(0.08+(5-quality)*0.02)));
+    r.reps += 1;
+  }
+  r.due = _todayEpoch()+r.interval; r.last=_todayEpoch();
+  srsMap[q]=r; saveSrs(); return r;
+}
+function srsStatus(q){
+  const r=srsMap[q];
+  if(!r) return {label:'새 카드', cls:'new'};
+  const d=r.due-_todayEpoch();
+  if(d<=0) return {label:'복습 대상', cls:'due'};
+  return {label:d+'일 뒤', cls:'sched'};
+}
+function isDueOrNew(c){ const r=srsMap[c.q]; if(!r) return true; return r.due<=_todayEpoch(); }
+function reviewCount(){ return ALL_CARDS.filter(isDueOrNew).length; }
+
+let game = Object.assign({xp:0,streak:0,maxStreak:0,reps:0,last:null}, (function(){ try{ return JSON.parse(localStorage.getItem('bbGame')||'{}'); }catch(e){ return {}; } })());
+function saveGame(){ localStorage.setItem('bbGame', JSON.stringify(game)); }
+function gameLevel(){ return Math.floor(game.xp/100)+1; }
+function gameAward(){
+  game.xp+=10; game.reps=(game.reps||0)+1;
+  const t=_todayStr();
+  if(game.last!==t){ game.streak = (game.last===_ydayStr()) ? (game.streak||0)+1 : 1; game.last=t; }
+  game.maxStreak=Math.max(game.maxStreak||0, game.streak);
+  saveGame(); updateGameBar();
+}
+function gameBadges(){
+  const lv=gameLevel(), ms=game.maxStreak||0, rp=game.reps||0;
+  return [
+    {n:'첫 평가', ic:'🎯', on:rp>=1},
+    {n:'카드 100', ic:'💯', on:rp>=100},
+    {n:'Lv.5 달성', ic:'⭐', on:lv>=5},
+    {n:'7일 연속', ic:'🔥', on:ms>=7},
+    {n:'30일 연속', ic:'🏆', on:ms>=30},
+    {n:'복습 클리어', ic:'✅', on:(reviewCount()===0 && rp>=1)},
+  ];
+}
+
+function rateCard(quality){
+  const card = filteredCards[currentIndex]; if(!card) return;
+  const r = srsUpdate(card.q, quality);
+  gameAward(); updateReviewBadge();
+  const bar = document.querySelector('#card .srs-bar');
+  if(bar){
+    const dd = r.due-_todayEpoch();
+    const msg = (quality===0||dd<=0) ? '오늘 다시 등장' : (dd+'일 뒤 복습');
+    bar.innerHTML = '<div class="srs-done">✓ 예약됨 — <b>'+msg+'</b> · +10 XP</div>';
+  }
+  if(filterMode==='복습' && currentIndex < filteredCards.length-1){ setTimeout(function(){ move(1); }, 480); }
+}
+function injectSrsBar(card){
+  const c=document.getElementById('card'); if(!c||!card) return;
+  const st=srsStatus(card.q);
+  const html='<div class="srs-bar">'+
+    '<div class="srs-head"><span class="srs-q">이 카드, 얼마나 알았나요?</span>'+
+    '<span class="srs-stat '+st.cls+'">'+st.label+'</span></div>'+
+    '<div class="srs-btns">'+
+      '<button class="srs-b again" onclick="rateCard(0)">다시</button>'+
+      '<button class="srs-b hard" onclick="rateCard(3)">어려움</button>'+
+      '<button class="srs-b good" onclick="rateCard(4)">보통</button>'+
+      '<button class="srs-b easy" onclick="rateCard(5)">쉬움</button>'+
+    '</div></div>';
+  c.insertAdjacentHTML('beforeend', html);
+}
+
+function updateGameBar(){
+  const lv=document.getElementById('gbLv'); if(lv) lv.textContent=gameLevel();
+  const xp=document.getElementById('gbXp'); if(xp) xp.style.width=(game.xp%100)+'%';
+  const st=document.getElementById('gbStreak'); if(st) st.textContent='🔥'+(game.streak||0);
+}
+function updateReviewBadge(){
+  const b=document.getElementById('reviewCount'); if(b) b.textContent=reviewCount();
+}
+function openStats(){
+  const m=document.getElementById('statsModal'); if(!m) return;
+  const body=document.getElementById('statsBody');
+  const cells=[['Lv.'+gameLevel(),'레벨'],[game.xp+' XP','누적 경험치'],['🔥 '+(game.streak||0),'연속 학습일'],[(game.reps||0),'총 평가 수'],[reviewCount(),'오늘 복습 대기'],['최고 '+(game.maxStreak||0)+'일','최장 연속']];
+  body.innerHTML='<div class="stats-grid">'+cells.map(function(c){return '<div class="stat-cell"><div class="v">'+c[0]+'</div><div class="l">'+c[1]+'</div></div>';}).join('')+
+    '<div class="badge-grid">'+gameBadges().map(function(b){return '<div class="badge-cell'+(b.on?' on':'')+'"><span class="bi">'+b.ic+'</span>'+b.n+'</div>';}).join('')+'</div>';
+  m.classList.add('open');
+}
+function closeStats(){ const m=document.getElementById('statsModal'); if(m) m.classList.remove('open'); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  const fb=document.getElementById('filterBar');
+  if(fb && !document.getElementById('gameBar')){
+    const gb=document.createElement('div');
+    gb.className='game-bar'; gb.id='gameBar'; gb.setAttribute('onclick','openStats()');
+    gb.innerHTML='<span class="gb-lv">Lv.<b id="gbLv">1</b></span><div class="gb-xpwrap"><div class="gb-xp" id="gbXp"></div></div><span class="gb-streak" id="gbStreak">🔥0</span>';
+    fb.parentNode.insertBefore(gb, fb.nextSibling);
+  }
+  const wb=document.getElementById('wrongFltBtn');
+  if(wb && !document.getElementById('reviewFltBtn')){
+    const rb=document.createElement('button');
+    rb.className='btn-flt'; rb.id='reviewFltBtn'; rb.setAttribute('data-mode','복습');
+    rb.setAttribute('onclick','setFilterMode("복습",this)');
+    rb.style.color='var(--gul)'; rb.style.borderColor='color-mix(in srgb,var(--gul) 45%,transparent)';
+    rb.innerHTML='🔁 복습<span class="rc" id="reviewCount">0</span>';
+    wb.parentNode.insertBefore(rb, wb);
+  }
+  if(!document.getElementById('statsModal')){
+    const sm=document.createElement('div');
+    sm.className='modal-overlay'; sm.id='statsModal';
+    sm.innerHTML='<div class="modal-box stats-box"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">📊 학습 현황</div><div id="statsBody"></div><button class="btn-nav" style="width:100%;margin-top:14px;" onclick="closeStats()">닫기</button></div>';
+    sm.addEventListener('click', function(e){ if(e.target===sm) closeStats(); });
+    document.body.appendChild(sm);
+  }
+  updateGameBar(); updateReviewBadge();
+});
+
 
 
 // ── 스타일 추가 ──
