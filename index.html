@@ -5991,10 +5991,10 @@ document.addEventListener('DOMContentLoaded', init);
   .stat-cell{background:var(--surface2);border-radius:12px;padding:12px;text-align:center;}
   .stat-cell .v{font-size:21px;font-weight:800;color:var(--text);}
   .stat-cell .l{font-size:11px;color:var(--text-muted);margin-top:2px;}
-  .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-  .badge-cell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 4px;border-radius:10px;font-size:10px;text-align:center;line-height:1.25;background:var(--surface2);color:var(--text-dim);}
+  .badge-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .badge-cell{display:flex;flex-direction:column;align-items:center;gap:7px;padding:16px 8px;border-radius:12px;font-size:13px;text-align:center;line-height:1.3;background:var(--surface2);color:var(--text-dim);}
   .badge-cell.on{background:color-mix(in srgb,var(--gul) 14%,transparent);color:var(--text);}
-  .badge-cell .bi{font-size:21px;filter:grayscale(1);opacity:.35;}
+  .badge-cell .bi{font-size:28px;filter:grayscale(1);opacity:.35;}
   .badge-cell.on .bi{filter:none;opacity:1;}
   `;
   document.head.appendChild(_rs);
@@ -6083,7 +6083,7 @@ function injectSrsBar(card){
       '<button class="srs-b good" onclick="rateCard(4)">보통</button>'+
       '<button class="srs-b easy" onclick="rateCard(5)">쉬움</button>'+
     '</div></div>';
-  c.insertAdjacentHTML('beforeend', tools+html);
+  c.insertAdjacentHTML('beforeend', tools+(filterMode==='복습'?html:''));
 }
 
 function updateGameBar(){
@@ -6103,6 +6103,14 @@ function openStats(){
   m.classList.add('open');
 }
 function closeStats(){ const m=document.getElementById('statsModal'); if(m) m.classList.remove('open'); }
+function resetStats(){
+  if(!confirm('학습 현황(경험치·연속일·복습 일정)을 모두 초기화할까요? 되돌릴 수 없습니다.')) return;
+  srsMap={}; saveSrs();
+  game={xp:0,streak:0,maxStreak:0,reps:0,last:null}; saveGame();
+  updateGameBar(); updateReviewBadge();
+  if(typeof render==='function') render();
+  openStats();
+}
 
 document.addEventListener('DOMContentLoaded', function(){
   const fb=document.getElementById('filterBar');
@@ -6124,7 +6132,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if(!document.getElementById('statsModal')){
     const sm=document.createElement('div');
     sm.className='modal-overlay'; sm.id='statsModal';
-    sm.innerHTML='<div class="modal-box stats-box"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">📊 학습 현황</div><div id="statsBody"></div><button class="btn-nav" style="width:100%;margin-top:14px;" onclick="closeStats()">닫기</button></div>';
+    sm.innerHTML='<div class="modal-box stats-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-size:16px;font-weight:700;">📊 학습 현황</div><button onclick="resetStats()" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text-dim);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;">초기화</button></div><div id="statsBody"></div><button class="btn-nav" style="width:100%;margin-top:14px;" onclick="closeStats()">닫기</button></div>';
     sm.addEventListener('click', function(e){ if(e.target===sm) closeStats(); });
     document.body.appendChild(sm);
   }
